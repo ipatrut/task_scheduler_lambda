@@ -1,0 +1,3 @@
+
+class NoSuchEntity(Exception):
+    pass

@@ -1,0 +1,134 @@
+service: TASK-SCHEDULER
+
+provider:
+  name: aws
+  runtime: python3.6
+  stage: ${opt:stage, 'dev'}
+  region: ${file(./config.json):REGION}
+  environment:
+    AURORA_DB_HOST: ${file(./config.json):AURORA_DB_HOST}
+    AURORA_DB_PORT: ${file(./config.json):AURORA_DB_PORT}
+    AURORA_DB_NAME: ${file(./config.json):AURORA_DB_NAME}
+    AURORA_DB_USER: ${file(./config.json):AURORA_DB_USER}
+    AURORA_DB_PASSWORD: ${file(./config.json):AURORA_DB_PASSWORD}
+  iamRoleStatements:
+    - ${self:provider.snsRoleStatements}
+  snsRoleStatements:
+    Effect: Allow
+    Action:
+      - sns:*
+    Resource:
+      - arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:*
+
+custom: ${file(./localstack.yaml)}
+
+package:
+  include:
+    - repositories/**
+    - utils/**
+  exclude:
+    - env/**
+    - node_modules/**
+    - tests/**
+    - data/**
+    - config.json
+
+functions:
+  task_executer:
+    handler: task_executer.handler
+    name: ${self:provider.stage}-${self:service}-task-executer
+    description: Run task in every 10 minutes
+    timeout: 600
+    reservedConcurrency: 1
+    events:
+      - schedule: rate(10 minutes)
+
+  task_manager:
+    handler: task_manager.handler
+    name: ${self:provider.stage}-${self:service}-task-manager
+    description: Update a task
+    timeout: 600
+    events:
+      - sns:
+          arn: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:provider.stage}-task
+
+  add_task:
+    handler: task_api.add_task
+    name: ${self:provider.stage}-${self:service}-add-task
+    description: Add a new task
+    timeout: 20
+    events:
+      - http:
+          path: task
+          method: post
+
+  modify_task:
+    handler: task_api.modify_task
+    name: ${self:provider.stage}-${self:service}-modify-task
+    description: Update a task
+    timeout: 20
+    events:
+      - http:
+          path: task
+          method: put
+
+  get_task:
+    handler: task_api.get_by_id
+    name: ${self:provider.stage}-${self:service}-get-task-by-id
+    description: Get a task using id
+    timeout: 20
+    events:
+      - http:
+          path: task/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+
+  delete_task:
+    handler: task_api.delete_by_id
+    name: ${self:provider.stage}-${self:service}-delete-task-by-id
+    description: Delete a task using id
+    timeout: 20
+    events:
+      - http:
+          path: task/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+
+  get_tasks:
+    handler: task_api.get_tasks
+    name: ${self:provider.stage}-${self:service}-get-tasks
+    description: Get every task
+    timeout: 20
+    events:
+      - http:
+          path: task
+          method: get
+          request:
+            parameters:
+              querystrings:
+                from: true
+                to: true
+                type: true
+
+
+resources:
+  Resources:
+    NotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: 'task create/read/update/delete operations are sent to this topic'
+        TopicName: ${self:provider.stage}-task
+    
+    
+
+plugins:
+  - serverless-localstack
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+  - serverless-prune-plugin

@@ -1,0 +1,8 @@
+{
+    "REGION": "us-east-1",
+    "AURORA_DB_HOST": "localhost",
+    "AURORA_DB_PORT": "3306",
+    "AURORA_DB_NAME": "task",
+    "AURORA_DB_USER": "debian-sys-maint",
+    "AURORA_DB_PASSWORD": "y6NTistXCuzl8Um4"
+}

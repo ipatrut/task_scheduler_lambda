@@ -1,0 +1,14 @@
+{
+  "name": "task-scheduling",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {
+    "serverless": "^1.52.2"
+  },
+  "devDependencies": {
+    "serverless-localstack": "^0.4.24",
+    "serverless-prune-plugin": "^1.4.1",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "serverless-python-requirements": "^5.0.1",
+  }
+}
