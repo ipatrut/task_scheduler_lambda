@@ -2,5 +2,7 @@ node_modules/
 env/
 data/
 .serverless/
+.idea/
+__pycache__
 config.json
 config.example.json
