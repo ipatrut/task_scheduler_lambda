@@ -1,0 +1,8 @@
+{
+    "REGION": "us-east-1",
+    "AURORA_DB_HOST": "task-instance-1.xxxxxxxxxxxx.us-east-1.rds.amazonaws.com",
+    "AURORA_DB_PORT": "3306",
+    "AURORA_DB_NAME": "task",
+    "AURORA_DB_USER": "admin",
+    "AURORA_DB_PASSWORD": "password"
+}
